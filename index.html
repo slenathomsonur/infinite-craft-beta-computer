@@ -1,0 +1,1434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Infinite Craft | Retro Computer Edition</title>
+    <style>
+        /* Retro Computer Styling */
+        :root {
+            --dark-gray: #333333;
+            --medium-gray: #555555;
+            --light-gray: #777777;
+            --terminal-green: #00ff00;
+            --terminal-dark-green: #008800;
+            --amber: #ffb000;
+            --dark-amber: #cc8c00;
+            --white: #cccccc;
+            --black: #111111;
+            --blue: #0066cc;
+            --dark-blue: #004499;
+            --floppy-blue: #1a5fb4;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Courier New', 'Lucida Console', monospace;
+        }
+
+        body {
+            background-color: #222222;
+            color: var(--white);
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background 2s ease;
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(40, 40, 40, 0.8) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(30, 30, 30, 0.6) 0%, transparent 50%);
+        }
+
+        /* Rainbow mode */
+        body.rainbow-mode {
+            animation: rainbowBackground 10s linear infinite;
+        }
+
+        @keyframes rainbowBackground {
+            0% { background-color: #ff0000; }
+            16% { background-color: #ff7f00; }
+            33% { background-color: #ffff00; }
+            50% { background-color: #00ff00; }
+            66% { background-color: #0000ff; }
+            83% { background-color: #4b0082; }
+            100% { background-color: #9400d3; }
+        }
+
+        /* CRT monitor effect */
+        .crt-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
+                linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 4px, 3px 100%;
+            z-index: 100;
+            pointer-events: none;
+        }
+
+        .crt-glow {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            box-shadow: inset 0 0 100px rgba(0, 255, 0, 0.1);
+            z-index: 99;
+            pointer-events: none;
+        }
+
+        /* Screen crack effect */
+        .screen-crack {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                linear-gradient(45deg, transparent 49%, rgba(255, 255, 255, 0.1) 49%, rgba(255, 255, 255, 0.1) 51%, transparent 51%) 0 0 / 50px 50px,
+                linear-gradient(-45deg, transparent 49%, rgba(255, 255, 255, 0.05) 49%, rgba(255, 255, 255, 0.05) 51%, transparent 51%) 0 0 / 50px 50px;
+            z-index: 101;
+            pointer-events: none;
+            opacity: 0.3;
+        }
+
+        .computer-case {
+            width: 850px;
+            background: linear-gradient(to bottom, #555555, #222222);
+            border: 15px solid #1a1a1a;
+            border-radius: 15px;
+            box-shadow: 
+                0 0 30px rgba(0, 0, 0, 0.8), 
+                inset 0 0 30px rgba(0, 0, 0, 0.7),
+                0 10px 20px rgba(0, 0, 0, 0.9);
+            position: relative;
+            padding: 25px;
+        }
+
+        .monitor-frame {
+            background: linear-gradient(135deg, #444444, #1a1a1a, #444444);
+            border: 10px solid #111111;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 
+                inset 0 0 20px rgba(0, 0, 0, 0.9),
+                0 5px 15px rgba(0, 0, 0, 0.7);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .screen {
+            background-color: #0a0a0a;
+            border: 3px solid #333333;
+            border-radius: 5px;
+            padding: 25px;
+            min-height: 550px;
+            box-shadow: 
+                inset 0 0 20px rgba(0, 100, 0, 0.4),
+                0 0 30px rgba(0, 80, 0, 0.3);
+            position: relative;
+            z-index: 10;
+        }
+
+        .power-light {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 15px;
+            height: 15px;
+            background-color: var(--terminal-green);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--terminal-green);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.6; box-shadow: 0 0 5px var(--terminal-green); }
+            50% { opacity: 1; box-shadow: 0 0 15px var(--terminal-green); }
+            100% { opacity: 0.6; box-shadow: 0 0 5px var(--terminal-green); }
+        }
+
+        .branding {
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--terminal-green);
+            text-shadow: 0 0 8px var(--terminal-green);
+            border-bottom: 2px solid var(--medium-gray);
+            padding-bottom: 15px;
+            position: relative;
+        }
+
+        .branding::before, .branding::after {
+            content: "◆";
+            position: absolute;
+            top: 0;
+            color: var(--amber);
+            font-size: 20px;
+        }
+
+        .branding::before {
+            left: 30px;
+        }
+
+        .branding::after {
+            right: 30px;
+        }
+
+        h1 {
+            font-size: 28px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+
+        .game-area {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+
+        @media (max-width: 900px) {
+            .game-area {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .crafting-section, .inventory-section {
+            background-color: rgba(15, 15, 15, 0.9);
+            border: 2px solid var(--medium-gray);
+            border-radius: 5px;
+            padding: 20px;
+            box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.7);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .crafting-section::before, .inventory-section::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--terminal-green), transparent);
+        }
+
+        h2 {
+            margin-bottom: 15px;
+            font-size: 18px;
+            color: var(--terminal-green);
+            border-bottom: 1px solid var(--medium-gray);
+            padding-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .elements-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .element {
+            background: linear-gradient(to bottom, #2a2a2a, #1a1a1a);
+            border: 1px solid var(--light-gray);
+            border-radius: 3px;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.3s ease;
+            color: var(--white);
+            text-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .element::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 0, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .element:hover {
+            background: linear-gradient(to bottom, #3a3a3a, #2a2a2a);
+            border-color: var(--terminal-green);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7);
+        }
+
+        .element:hover::before {
+            left: 100%;
+        }
+
+        .element:active {
+            transform: translateY(1px);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+        }
+
+        .crafting-area {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin: 25px 0;
+            min-height: 120px;
+            background: linear-gradient(to bottom, #1a1a1a, #252525);
+            border: 2px solid var(--medium-gray);
+            border-radius: 5px;
+            padding: 15px;
+            position: relative;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.8);
+        }
+
+        .slot {
+            width: 80px;
+            height: 80px;
+            border: 2px dashed var(--light-gray);
+            border-radius: 3px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: rgba(40, 40, 40, 0.9);
+            font-size: 13px;
+            text-align: center;
+            padding: 5px;
+            color: var(--white);
+            transition: all 0.3s ease;
+        }
+
+        .slot.highlight {
+            border-color: var(--terminal-green);
+            background-color: rgba(0, 50, 0, 0.4);
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+        }
+
+        .plus-sign {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--terminal-green);
+            text-shadow: 0 0 5px var(--terminal-green);
+        }
+
+        .combine-btn {
+            background: linear-gradient(to bottom, var(--dark-blue), #003366);
+            color: var(--white);
+            border: 1px solid var(--light-gray);
+            padding: 10px 20px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 3px 5px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .combine-btn::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .combine-btn:hover {
+            background: linear-gradient(to bottom, var(--blue), #004499);
+            border-color: var(--terminal-green);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 8px rgba(0, 0, 0, 0.7);
+        }
+
+        .combine-btn:hover::before {
+            left: 100%;
+        }
+
+        .combine-btn:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 3px rgba(0, 0, 0, 0.5);
+        }
+
+        .combine-btn:disabled {
+            background: linear-gradient(to bottom, #2a2a2a, #1a1a1a);
+            color: var(--light-gray);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: 0 2px 3px rgba(0, 0, 0, 0.5);
+        }
+
+        .combine-btn:disabled:hover {
+            background: linear-gradient(to bottom, #2a2a2a, #1a1a1a);
+            border-color: var(--light-gray);
+        }
+
+        .result-section {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid var(--medium-gray);
+            border-radius: 3px;
+            text-align: center;
+            min-height: 60px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(30, 30, 30, 0.9);
+            font-size: 14px;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.7);
+        }
+
+        .success {
+            color: var(--terminal-green);
+            border-color: var(--terminal-green);
+            text-shadow: 0 0 5px var(--terminal-green);
+        }
+
+        .error {
+            color: #ff5555;
+            border-color: #ff5555;
+            text-shadow: 0 0 5px #ff5555;
+        }
+
+        .new-element {
+            animation: pop 0.4s ease;
+        }
+
+        @keyframes pop {
+            0% { transform: scale(0.8); opacity: 0; }
+            70% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Floppy Disk Inventory */
+        .floppy-rack {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            max-height: 350px;
+            overflow-y: auto;
+            padding: 10px;
+            background-color: rgba(20, 20, 20, 0.8);
+            border: 1px solid var(--medium-gray);
+            border-radius: 3px;
+        }
+
+        .floppy-disk {
+            background: linear-gradient(135deg, var(--floppy-blue), #0d4a9e);
+            border: 2px solid #0a3a7a;
+            border-radius: 5px;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .floppy-disk::before {
+            content: "";
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            right: 5px;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+        }
+
+        .floppy-disk::after {
+            content: "";
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            width: 15px;
+            height: 15px;
+            background: #0a3a7a;
+            border: 1px solid #082a5a;
+            border-radius: 2px;
+        }
+
+        .floppy-disk:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.7);
+            border-color: var(--terminal-green);
+        }
+
+        .floppy-label {
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+            text-align: center;
+            margin-top: 25px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+        }
+
+        .floppy-detail {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 400px;
+            background: linear-gradient(135deg, #1a1a1a, #2a2a2a);
+            border: 3px solid var(--terminal-green);
+            border-radius: 5px;
+            padding: 20px;
+            z-index: 1000;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.9);
+        }
+
+        .floppy-detail.show {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translate(-50%, -55%); }
+            to { opacity: 1; transform: translate(-50%, -50%); }
+        }
+
+        .detail-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 1px solid var(--terminal-green);
+            padding-bottom: 10px;
+        }
+
+        .detail-title {
+            font-size: 18px;
+            color: var(--terminal-green);
+            text-transform: uppercase;
+        }
+
+        .close-detail {
+            background: none;
+            border: none;
+            color: var(--terminal-green);
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .detail-content {
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .detail-recipe {
+            margin-top: 15px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 3px;
+        }
+
+        .discovered-count {
+            margin-top: 15px;
+            text-align: center;
+            font-style: italic;
+            font-size: 13px;
+            color: var(--light-gray);
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        .control-btn {
+            background: linear-gradient(to bottom, #3a3a3a, #2a2a2a);
+            color: var(--white);
+            border: 1px solid var(--light-gray);
+            padding: 8px 15px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .control-btn:hover {
+            background: linear-gradient(to bottom, #4a4a4a, #3a3a3a);
+            border-color: var(--terminal-green);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.7);
+        }
+
+        .control-btn:active {
+            transform: translateY(1px);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        .floppy-icon {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            background-color: var(--floppy-blue);
+            border: 1px solid #0a3a7a;
+            margin-right: 5px;
+            position: relative;
+            vertical-align: middle;
+        }
+
+        .floppy-icon::before {
+            content: "";
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 8px;
+            height: 6px;
+            background-color: white;
+            border: 1px solid #0a3a7a;
+        }
+
+        .floppy-icon::after {
+            content: "";
+            position: absolute;
+            bottom: 2px;
+            left: 4px;
+            width: 2px;
+            height: 4px;
+            background-color: white;
+            border: 1px solid #0a3a7a;
+        }
+
+        .copyright {
+            text-align: center;
+            margin-top: 25px;
+            font-size: 11px;
+            color: var(--light-gray);
+            border-top: 1px solid var(--medium-gray);
+            padding-top: 15px;
+        }
+
+        .keyboard {
+            margin-top: 25px;
+            height: 45px;
+            background: linear-gradient(to bottom, #444444, #222222);
+            border-radius: 5px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--light-gray);
+            font-size: 11px;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.7);
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 999;
+            display: none;
+        }
+
+        .overlay.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="crt-overlay"></div>
+    <div class="crt-glow"></div>
+    <div class="screen-crack"></div>
+    <div class="overlay" id="overlay"></div>
+    
+    <div class="computer-case">
+        <div class="power-light"></div>
+        <div class="monitor-frame">
+            <div class="screen">
+                <div class="branding">
+                    <h1>INFINITE CRAFT</h1>
+                    <div>RETRO COMPUTER EDITION</div>
+                </div>
+
+                <div class="game-area">
+                    <section class="crafting-section">
+                        <h2>CRAFTING AREA</h2>
+                        <div class="elements-grid" id="crafting-elements">
+                            <div class="element" data-element="Earth">EARTH</div>
+                            <div class="element" data-element="Fire">FIRE</div>
+                            <div class="element" data-element="Water">WATER</div>
+                            <div class="element" data-element="Wind">WIND</div>
+                        </div>
+
+                        <div class="crafting-area">
+                            <div class="slot" id="slot1"></div>
+                            <div class="plus-sign">+</div>
+                            <div class="slot" id="slot2"></div>
+                        </div>
+
+                        <button class="combine-btn" id="combine-btn" disabled>COMBINE ELEMENTS</button>
+
+                        <div class="result-section" id="result-section">
+                            <p>SELECT TWO ELEMENTS TO COMBINE THEM</p>
+                        </div>
+                    </section>
+
+                    <section class="inventory-section">
+                        <h2>DISKETTE LIBRARY</h2>
+                        <div class="floppy-rack" id="inventory">
+                            <!-- Floppy disks will be added here dynamically -->
+                        </div>
+                        <div class="discovered-count">
+                            <span id="discovered-count">4</span> ELEMENTS ARCHIVED
+                        </div>
+                    </section>
+                </div>
+
+                <div class="controls">
+                    <button class="control-btn" id="save-btn">
+                        <span class="floppy-icon"></span>
+                        SAVE GAME
+                    </button>
+                    <button class="control-btn" id="load-btn">
+                        LOAD GAME
+                    </button>
+                    <button class="control-btn" id="reset-btn">
+                        RESET GAME
+                    </button>
+                </div>
+
+                <div class="copyright">
+                    © DEM STUDIOS 2025 | INFINITE CRAFT RETRO COMPUTER EDITION
+                </div>
+            </div>
+        </div>
+        <div class="keyboard">
+            FUNCTION KEYS: [F1] HELP [F2] SAVE [F3] LOAD [F5] RESET
+        </div>
+    </div>
+
+    <!-- Floppy Disk Detail Modal -->
+    <div class="floppy-detail" id="floppy-detail">
+        <div class="detail-header">
+            <div class="detail-title" id="detail-title">ELEMENT DETAIL</div>
+            <button class="close-detail" id="close-detail">✕</button>
+        </div>
+        <div class="detail-content" id="detail-content">
+            <!-- Detail content will be inserted here -->
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        const gameState = {
+            inventory: new Set(['Earth', 'Fire', 'Water', 'Wind']),
+            craftingSlots: [null, null],
+            rainbowMode: false,
+            combinations: {
+                'Earth+Fire': 'Lava',
+                'Earth+Water': 'Mud',
+                'Earth+Wind': 'Dust',
+                'Fire+Water': 'Steam',
+                'Fire+Wind': 'Smoke',
+                'Water+Wind': 'Wave',
+                'Water+Water': 'Rainbow', // Special combination for rainbow effect
+                'Earth+Wind': 'Rainbow',  // Alternative combination for rainbow effect
+                'Lava+Water': 'Obsidian',
+                'Lava+Earth': 'Volcano',
+                'Mud+Fire': 'Brick',
+                'Mud+Water': 'Swamp',
+                'Steam+Earth': 'Geyser',
+                'Steam+Fire': 'Energy',
+                'Smoke+Water': 'Fog',
+                'Smoke+Fire': 'Soot',
+                'Dust+Fire': 'Ash',
+                'Dust+Water': 'Clay',
+                'Wave+Earth': 'Beach',
+                'Wave+Fire': 'Tsunami',
+                'Obsidian+Fire': 'Glass',
+                'Volcano+Water': 'Island',
+                'Brick+Brick': 'Wall',
+                'Brick+Fire': 'Furnace',
+                'Swamp+Fire': 'Tar',
+                'Geyser+Stone': 'Hot Spring',
+                'Energy+Water': 'Electricity',
+                'Energy+Earth': 'Crystal',
+                'Fog+Wind': 'Cloud',
+                'Soot+Water': 'Ink',
+                'Ash+Water': 'Potion',
+                'Clay+Fire': 'Ceramic',
+                'Beach+Wave': 'Surf',
+                'Tsunami+Earth': 'Flood',
+                'Glass+Sand': 'Hourglass',
+                'Island+Wind': 'Palm Tree',
+                'Wall+Wall': 'House',
+                'Furnace+Ore': 'Metal',
+                'Tar+Earth': 'Asphalt',
+                'Hot Spring+Water': 'Spa',
+                'Electricity+Wind': 'Storm',
+                'Crystal+Fire': 'Laser',
+                'Cloud+Water': 'Rain',
+                'Ink+Paper': 'Book',
+                'Potion+Fire': 'Explosion',
+                'Ceramic+Water': 'Vase',
+                'Surf+Wind': 'Wind Surfing',
+                'Flood+Fire': 'Steam Age',
+                'Hourglass+Fire': 'Time',
+                'Palm Tree+Coconut': 'Palm Tree', // Circular reference for fun
+                'House+Fire': 'Firehouse',
+                'Firehouse+Water': 'Firetruck',
+                'Metal+Fire': 'Sword',
+                'Asphalt+Car': 'Road',
+                'Spa+Earth': 'Resort',
+                'Storm+Water': 'Hurricane',
+                'Laser+Glass': 'Laser Pointer',
+                'Rain+Earth': 'Plant',
+                'Book+Fire': 'Ash', // Circular reference
+                'Explosion+Earth': 'Crater',
+                'Vase+Water': 'Flowers',
+                'Wind Surfing+Wave': 'Extreme',
+                'Steam Age+Time': 'Industrial',
+                'Time+Sand': 'Hourglass', // Circular reference
+                'Sword+Metal': 'Armor',
+                'Road+Car': 'Traffic',
+                'Resort+Water': 'Vacation',
+                'Hurricane+Wind': 'Tornado',
+                'Laser Pointer+Cat': 'Distraction',
+                'Plant+Fire': 'Tobacco',
+                'Crater+Water': 'Lake',
+                'Flowers+Bee': 'Honey',
+                'Extreme+Fire': 'Danger',
+                'Industrial+Steam': 'Revolution',
+                'Armor+Fire': 'Knight',
+                'Traffic+Time': 'Gridlock',
+                'Vacation+Work': 'Stress',
+                'Tornado+House': 'Destruction',
+                'Distraction+Work': 'Procrastination',
+                'Tobacco+Paper': 'Cigarette',
+                'Lake+Fish': 'Fishing',
+                'Honey+Bear': 'Winnie',
+                'Danger+Warning': 'Caution',
+                'Revolution+People': 'Change',
+                'Knight+King': 'Royalty',
+                'Gridlock+Patience': 'Waiting',
+                'Stress+Relaxation': 'Balance',
+                'Destruction+Time': 'Ruins',
+                'Procrastination+Deadline': 'Panic',
+                'Cigarette+Health': 'Cancer',
+                'Fishing+Patience': 'Meditation',
+                'Winnie+Honey': 'Content',
+                'Caution+Warning': 'Danger', // Circular reference
+                'Change+Time': 'Progress',
+                'Royalty+People': 'Kingdom',
+                'Waiting+Time': 'Boredom',
+                'Balance+Scale': 'Justice',
+                'Ruins+Time': 'History',
+                'Panic+Control': 'Chaos',
+                'Cancer+Cure': 'Hope',
+                'Meditation+Mind': 'Enlightenment',
+                'Content+Desire': 'Satisfaction',
+                'Progress+Technology': 'Future',
+                'Kingdom+Castle': 'Empire',
+                'Boredom+Creativity': 'Art',
+                'Justice+Scale': 'Balance', // Circular reference
+                'History+Book': 'Knowledge',
+                'Chaos+Order': 'Balance', // Circular reference
+                'Hope+Faith': 'Miracle',
+                'Enlightenment+Wisdom': 'Philosophy',
+                'Satisfaction+Desire': 'Happiness',
+                'Future+Past': 'Present',
+                'Empire+Emperor': 'Dynasty',
+                'Art+Creativity': 'Masterpiece',
+                'Knowledge+Wisdom': 'Understanding',
+                'Miracle+Faith': 'Religion',
+                'Philosophy+Question': 'Answer',
+                'Happiness+Sharing': 'Joy',
+                'Present+Moment': 'Now',
+                'Dynasty+Time': 'Legacy',
+                'Masterpiece+Artist': 'Fame',
+                'Understanding+Knowledge': 'Wisdom', // Circular reference
+                'Religion+Faith': 'Belief',
+                'Answer+Question': 'Understanding', // Circular reference
+                'Joy+Happiness': 'Bliss',
+                'Now+Time': 'Present', // Circular reference
+                'Legacy+History': 'Tradition',
+                'Fame+People': 'Celebrity',
+                'Wisdom+Age': 'Elder',
+                'Belief+Proof': 'Fact',
+                'Bliss+Content': 'Nirvana',
+                'Present+Mindfulness': 'Awareness',
+                'Tradition+Culture': 'Heritage',
+                'Celebrity+Media': 'Attention',
+                'Elder+Youth': 'Generation',
+                'Fact+Evidence': 'Truth',
+                'Nirvana+Desire': 'Enlightenment', // Circular reference
+                'Awareness+Consciousness': 'Being',
+                'Heritage+History': 'Legacy', // Circular reference
+                'Attention+Focus': 'Importance',
+                'Generation+Time': 'Era',
+                'Truth+Lie': 'Paradox',
+                'Being+Existence': 'Universe',
+                'Importance+Value': 'Significance',
+                'Era+Period': 'Age',
+                'Paradox+Logic': 'Confusion',
+                'Universe+Space': 'Cosmos',
+                'Significance+Meaning': 'Purpose',
+                'Age+Time': 'Era', // Circular reference
+                'Confusion+Clarity': 'Understanding', // Circular reference
+                'Cosmos+Stars': 'Galaxy',
+                'Purpose+Life': 'Destiny',
+                'Galaxy+Universe': 'Multiverse',
+                'Destiny+Fate': 'Inevitability',
+                'Multiverse+Reality': 'Existence', // Circular reference
+                'Inevitability+Time': 'Eternity'
+            },
+            elementDescriptions: {
+                'Earth': 'The solid ground beneath our feet. Foundation of all terrestrial elements.',
+                'Fire': 'The transformative power of heat and light. Both destructive and creative.',
+                'Water': 'The fluid essence of life. Adaptable and essential for existence.',
+                'Wind': 'The invisible force of motion. Carries seeds, sounds, and change.',
+                'Lava': 'Molten rock from the Earth\'s core. The birth of new land.',
+                'Mud': 'Earth and water combined. The primordial ooze of potential.',
+                'Dust': 'Fine particles carried by wind. The remains of what once was.',
+                'Steam': 'Water transformed by heat. Power of industry and change.',
+                'Smoke': 'The visible residue of fire. Carries secrets on the wind.',
+                'Wave': 'Water given motion by wind. The rhythm of the oceans.',
+                'Rainbow': 'A spectrum of light revealed. Hope made visible in the sky.',
+                'Obsidian': 'Volcanic glass forged in extreme heat. Sharp and ancient.',
+                'Volcano': 'Earth\'s fiery breath. Creation and destruction in one.',
+                'Brick': 'Fired clay shaped by intention. The building block of civilization.',
+                'Swamp': 'Water and earth in stagnant harmony. Life in transition.',
+                'Geyser': 'Underground water heated to eruption. Nature\'s timed spectacle.',
+                'Energy': 'The potential for work and change. The invisible force of existence.',
+                'Fog': 'Earthbound clouds of mystery. Obscures and reveals in turns.',
+                'Soot': 'The dark residue of incomplete combustion. Evidence of fire\'s passage.',
+                'Ash': 'The final remains of what fire consumes. Fertile ground for new beginnings.',
+                'Clay': 'Earth refined by water. The sculptor\'s medium of choice.',
+                'Beach': 'Where land meets sea. The ever-changing border of worlds.',
+                'Tsunami': 'Ocean\'s wrath unleashed. The power of water in motion.',
+                'Glass': 'Sand transformed by intense heat. Transparency forged in fire.',
+                'Island': 'Land surrounded by sea. Isolation and discovery in one.',
+                'Wall': 'The division of space. Protection and separation.',
+                'Furnace': 'Contained fire for transformation. The heart of industry.',
+                'Tar': 'Thick, dark petroleum residue. The sticky foundation of roads.',
+                'Hot Spring': 'Earth\'s heated waters rising. Nature\'s therapeutic bath.',
+                'Electricity': 'The flow of charged particles. Modern civilization\'s lifeblood.',
+                'Crystal': 'Earth\'s minerals in perfect order. Beauty formed under pressure.',
+                'Cloud': 'Atmospheric water vapor. The sky\'s ever-changing canvas.',
+                'Ink': 'Pigmented liquid for recording thoughts. The medium of knowledge.',
+                'Potion': 'Magical mixture with unknown effects. Alchemy\'s mysterious product.',
+                'Ceramic': 'Clay transformed by fire. The durable art of earth.',
+                'Surf': 'The sport of riding waves. Harmony between human and ocean.',
+                'Flood': 'Water overwhelming its boundaries. Nature\'s reset button.',
+                'Steam Age': 'The era of steam power. The beginning of modern industry.',
+                'Hourglass': 'Time made visible through falling sand. The measure of moments.',
+                'Time': 'The fourth dimension of existence. The river that carries all things.',
+                'Palm Tree': 'Tropical symbol of relaxation. Provider of shade and sustenance.',
+                'House': 'Shelter from the elements. The foundation of human settlement.',
+                'Firehouse': 'Home for firefighting equipment. Protection against destruction.',
+                'Firetruck': 'Vehicle for emergency response. Speed and water combined.',
+                'Metal': 'Element refined from ore. The backbone of technology.',
+                'Sword': 'Metal sharpened for combat. The extension of will through steel.',
+                'Asphalt': 'Paved surface for travel. The modern road\'s foundation.',
+                'Road': 'Pathway for journey and trade. Connection between places.',
+                'Car': 'Personal transportation vehicle. Freedom on wheels.',
+                'Spa': 'Place of relaxation and rejuvenation. Water\'s healing power.',
+                'Resort': 'Destination for leisure and escape. The commercialization of relaxation.',
+                'Storm': 'Atmospheric disturbance. Nature\'s display of power.',
+                'Electricity': 'The flow of energy. Modern life\'s invisible servant.',
+                'Laser': 'Focused light amplification. Precision made visible.',
+                'Rain': 'Falling water from clouds. Nature\'s irrigation system.',
+                'Book': 'Bound pages of knowledge. The preservation of thought.',
+                'Explosion': 'Rapid release of energy. Sudden and dramatic change.',
+                'Crater': 'Depression caused by impact. The scar of violent events.',
+                'Vase': 'Container for displaying beauty. Art meets function.',
+                'Flowers': 'Nature\'s colorful reproductive organs. Beauty with purpose.',
+                'Wind Surfing': 'Sport combining wind and wave. Human harnessing natural forces.',
+                'Extreme': 'Pushing beyond normal limits. The edge of experience.',
+                'Industrial': 'Relating to manufacturing and production. The age of machines.',
+                'Armor': 'Protective covering for battle. Security through strength.',
+                'Traffic': 'Movement of vehicles on roads. The flow and congestion of modern life.',
+                'Vacation': 'Time away from work. The pursuit of leisure.',
+                'Work': 'Activity for livelihood or purpose. The application of effort.',
+                'Hurricane': 'Powerful tropical cyclone. Nature\'s most destructive force.',
+                'Tornado': 'Violently rotating column of air. Focused destruction.',
+                'Laser Pointer': 'Device for highlighting. Focusing attention.',
+                'Cat': 'Domestic feline companion. Independence with affection.',
+                'Distraction': 'Diversion of attention. The enemy of focus.',
+                'Plant': 'Living organism that grows in earth. The foundation of most ecosystems.',
+                'Tobacco': 'Plant used for smoking. Pleasure with consequences.',
+                'Paper': 'Material made from pulp. The medium for writing and art.',
+                'Lake': 'Body of water surrounded by land. Stillness and depth.',
+                'Fish': 'Aquatic vertebrate animal. Life beneath the surface.',
+                'Fishing': 'The activity of catching fish. Patience and skill combined.',
+                'Bee': 'Flying insect that produces honey. Pollinator and producer.',
+                'Honey': 'Sweet substance made by bees. Nature\'s golden nectar.',
+                'Bear': 'Large omnivorous mammal. Strength and wilderness.',
+                'Winnie': 'Famous fictional bear. Childhood nostalgia.',
+                'Danger': 'Potential for harm or loss. The edge of safety.',
+                'Warning': 'Notice of potential danger. Caution advised.',
+                'Caution': 'Care taken to avoid danger. Prudent awareness.',
+                'Revolution': 'Fundamental change in power. The overthrow of established order.',
+                'People': 'Human beings collectively. Society in motion.',
+                'Change': 'The process of becoming different. The only constant.',
+                'Knight': 'Mounted warrior of nobility. Chivalry and combat.',
+                'King': 'Male monarch ruler. Sovereignty and authority.',
+                'Royalty': 'The status of kings and queens. Hereditary privilege.',
+                'Gridlock': 'Complete traffic stoppage. The failure of flow.',
+                'Patience': 'Capacity to accept delay. Virtue of waiting.',
+                'Waiting': 'The passage of time in anticipation. The space between events.',
+                'Stress': 'Mental or emotional strain. The pressure of modern life.',
+                'Relaxation': 'State of being free from tension. The antidote to stress.',
+                'Balance': 'State of equilibrium. Harmony between forces.',
+                'Destruction': 'The action of causing so much damage that something no longer exists.',
+                'Ruins': 'The physical remains of something destroyed. History made visible.',
+                'Procrastination': 'The action of delaying or postponing something.',
+                'Deadline': 'The latest time or date by which something should be completed.',
+                'Panic': 'Sud uncontrollable fear or anxiety, often causing wildly unthinking behavior.',
+                'Cigarette': 'A thin cylinder of finely cut tobacco rolled in paper for smoking.',
+                'Health': 'The state of being free from illness or injury.',
+                'Cancer': 'A disease caused by an uncontrolled division of abnormal cells.',
+                'Meditation': 'A practice where an individual uses a technique to focus their mind.',
+                'Mind': 'The element of a person that enables them to be aware of the world.',
+                'Enlightenment': 'The action or state of attaining or having attained spiritual knowledge.',
+                'Content': 'In a state of peaceful happiness. Satisfied with what one is or has.',
+                'Desire': 'A strong feeling of wanting to have something or wishing for something to happen.',
+                'Satisfaction': 'Fulfillment of one's wishes, expectations, or needs.',
+                'Progress': 'Forward or onward movement toward a destination. The advance of society.',
+                'Technology': 'The application of scientific knowledge for practical purposes.',
+                'Future': 'The time or a period of time following the moment of speaking or writing.',
+                'Past': 'The time before the moment of speaking or writing. History.',
+                'Present': 'The period of time now occurring. The current moment.',
+                'Castle': 'A large building fortified against attack with thick walls.',
+                'Empire': 'An extensive group of states or countries under a single supreme authority.',
+                'Boredom': 'The state of feeling bored. Lack of interest in current surroundings.',
+                'Creativity': 'The use of imagination or original ideas to create something.',
+                'Art': 'The expression or application of human creative skill and imagination.',
+                'Scale': 'An instrument for weighing. Also, relative size or extent.',
+                'Justice': 'Just behavior or treatment. The quality of being fair and reasonable.',
+                'History': 'The study of past events, particularly in human affairs.',
+                'Knowledge': 'Facts, information, and skills acquired through experience or education.',
+                'Chaos': 'Complete disorder and confusion. The opposite of order.',
+                'Order': 'The arrangement or disposition of people or things in relation to each other.',
+                'Control': 'The power to influence or direct people's behavior or the course of events.',
+                'Cure': 'A substance or treatment that heals a disease or condition.',
+                'Hope': 'A feeling of expectation and desire for a certain thing to happen.',
+                'Faith': 'Complete trust or confidence in someone or something.',
+                'Miracle': 'A surprising and welcome event that is not explicable by natural or scientific laws.',
+                'Wisdom': 'The quality of having experience, knowledge, and good judgment.',
+                'Philosophy': 'The study of the fundamental nature of knowledge, reality, and existence.',
+                'Question': 'A sentence worded or expressed so as to elicit information.',
+                'Answer': 'A solution to a problem or question. A response.',
+                'Happiness': 'The state of being happy. Feeling or showing pleasure or contentment.',
+                'Sharing': 'Having a portion of something with another or others.',
+                'Joy': 'A feeling of great pleasure and happiness.',
+                'Moment': 'A very brief period of time. An instant.',
+                'Now': 'At the present time or moment.',
+                'Dynasty': 'A line of hereditary rulers of a country.',
+                'Legacy': 'Something handed down from an ancestor or predecessor.',
+                'Masterpiece': 'A work of outstanding artistry, skill, or workmanship.',
+                'Artist': 'A person who produces paintings or drawings as a profession or hobby.',
+                'Fame': 'The state of being known or talked about by many people.',
+                'Understanding': 'The ability to understand something; comprehension.',
+                'Religion': 'The belief in and worship of a superhuman controlling power, especially a personal God.',
+                'Belief': 'Trust, faith, or confidence in someone or something.',
+                'Proof': 'Evidence or argument establishing a fact or the truth of a statement.',
+                'Fact': 'A thing that is known or proved to be true.',
+                'Bliss': 'Perfect happiness; great joy.',
+                'Nirvana': 'A transcendent state in which there is neither suffering, desire, nor sense of self.',
+                'Mindfulness': 'The quality or state of being conscious or aware of something.',
+                'Awareness': 'Knowledge or perception of a situation or fact.',
+                'Consciousness': 'The state of being aware of and responsive to one's surroundings.',
+                'Being': 'Existence. The nature or essence of a person.',
+                'Tradition': 'The transmission of customs or beliefs from generation to generation.',
+                'Culture': 'The arts and other manifestations of human intellectual achievement.',
+                'Heritage': 'Property that is or may be inherited; an inheritance.',
+                'Celebrity': 'A famous person, especially in entertainment or sports.',
+                'Media': 'The main means of mass communication.',
+                'Attention': 'Notice taken of someone or something; the regarding of someone as important.',
+                'Focus': 'The center of interest or activity.',
+                'Importance': 'The state or fact of being of great significance or value.',
+                'Youth': 'The period between childhood and adult age.',
+                'Generation': 'All of the people born and living at about the same time.',
+                'Elder': 'A person of greater age than someone specified.',
+                'Evidence': 'The available body of facts or information indicating whether a belief is true.',
+                'Truth': 'The quality or state of being true.',
+                'Lie': 'An intentionally false statement.',
+                'Existence': 'The fact or state of living or having objective reality.',
+                'Value': 'The regard that something is held to deserve; the importance or preciousness.',
+                'Significance': 'The quality of being worthy of attention; importance.',
+                'Period': 'A length or portion of time.',
+                'Era': 'A long and distinct period of history with a particular feature or characteristic.',
+                'Logic': 'Reasoning conducted or assessed according to strict principles of validity.',
+                'Confusion': 'Uncertainty about what is happening, intended, or required.',
+                'Clarity': 'The quality of being coherent and intelligible.',
+                'Space': 'The physical universe beyond the earth\'s atmosphere.',
+                'Universe': 'All existing matter and space considered as a whole; the cosmos.',
+                'Stars': 'A fixed luminous point in the night sky which is a large, remote incandescent body.',
+                'Cosmos': 'The universe seen as a well-ordered whole.',
+                'Meaning': 'What is meant by a word, text, concept, or action.',
+                'Purpose': 'The reason for which something is done or created or for which something exists.',
+                'Life': 'The condition that distinguishes animals and plants from inorganic matter.',
+                'Destiny': 'The events that will necessarily happen to a particular person or thing in the future.',
+                'Fate': 'The development of events beyond a person\'s control, regarded as predetermined.',
+                'Galaxy': 'A system of millions or billions of stars, together with gas and dust.',
+                'Multiverse': 'A hypothetical group of multiple universes.',
+                'Reality': 'The world or the state of things as they actually exist.',
+                'Inevitability': 'The quality of being certain to happen.',
+                'Eternity': 'Infinite or unending time.'
+            }
+        };
+
+        // DOM elements
+        const slots = [document.getElementById('slot1'), document.getElementById('slot2')];
+        const combineBtn = document.getElementById('combine-btn');
+        const resultSection = document.getElementById('result-section');
+        const inventoryContainer = document.getElementById('inventory');
+        const discoveredCount = document.getElementById('discovered-count');
+        const resetBtn = document.getElementById('reset-btn');
+        const saveBtn = document.getElementById('save-btn');
+        const loadBtn = document.getElementById('load-btn');
+        const craftingElements = document.getElementById('crafting-elements');
+        const floppyDetail = document.getElementById('floppy-detail');
+        const detailTitle = document.getElementById('detail-title');
+        const detailContent = document.getElementById('detail-content');
+        const closeDetail = document.getElementById('close-detail');
+        const overlay = document.getElementById('overlay');
+
+        // Initialize the game
+        function initGame() {
+            // Try to load saved game
+            loadGame();
+            
+            updateInventory();
+            setupElementInteractions();
+            combineBtn.addEventListener('click', combineElements);
+            resetBtn.addEventListener('click', resetGame);
+            saveBtn.addEventListener('click', saveGame);
+            loadBtn.addEventListener('click', loadGame);
+            closeDetail.addEventListener('click', closeFloppyDetail);
+            overlay.addEventListener('click', closeFloppyDetail);
+            
+            // Set up keyboard shortcuts
+            document.addEventListener('keydown', handleKeyPress);
+        }
+
+        // Handle keyboard shortcuts
+        function handleKeyPress(e) {
+            switch(e.key) {
+                case 'F2':
+                case 'f2':
+                    saveGame();
+                    break;
+                case 'F3':
+                case 'f3':
+                    loadGame();
+                    break;
+                case 'F5':
+                case 'f5':
+                    resetGame();
+                    break;
+                case 'Escape':
+                    closeFloppyDetail();
+                    break;
+            }
+        }
+
+        // Set up element interactions
+        function setupElementInteractions() {
+            // Crafting area elements
+            document.querySelectorAll('.element').forEach(element => {
+                element.addEventListener('click', () => {
+                    const elementName = element.dataset.element;
+                    addElementToCraftingSlot(elementName);
+                });
+            });
+        }
+
+        // Add element to first available crafting slot
+        function addElementToCraftingSlot(elementName) {
+            for (let i = 0; i < gameState.craftingSlots.length; i++) {
+                if (!gameState.craftingSlots[i]) {
+                    gameState.craftingSlots[i] = elementName;
+                    updateSlot(i, elementName);
+                    updateCombineButton();
+                    break;
+                }
+            }
+        }
+
+        // Update a crafting slot with an element
+        function updateSlot(slotIndex, elementName) {
+            const slot = slots[slotIndex];
+            slot.textContent = elementName.toUpperCase();
+            slot.classList.add('filled');
+        }
+
+        // Update the combine button state
+        function updateCombineButton() {
+            const bothSlotsFilled = gameState.craftingSlots[0] && gameState.craftingSlots[1];
+            combineBtn.disabled = !bothSlotsFilled;
+        }
+
+        // Combine the elements in the crafting slots
+        function combineElements() {
+            const element1 = gameState.craftingSlots[0];
+            const element2 = gameState.craftingSlots[1];
+            
+            // Try both combinations (order doesn't matter)
+            const combination1 = `${element1}+${element2}`;
+            const combination2 = `${element2}+${element1}`;
+            
+            let result = gameState.combinations[combination1] || gameState.combinations[combination2];
+            
+            if (result) {
+                // Check for special rainbow combination
+                if (result === 'Rainbow') {
+                    activateRainbowMode();
+                    showResult("RAINBOW MODE ACTIVATED!", true);
+                } else {
+                    // Regular combination
+                    if (!gameState.inventory.has(result)) {
+                        gameState.inventory.add(result);
+                        updateInventory();
+                        showResult(`SUCCESS! YOU CREATED: ${result.toUpperCase()}`, true);
+                        
+                        // Add the new element to the crafting area with animation
+                        addNewElementToCraftingArea(result);
+                    } else {
+                        showResult(`YOU ALREADY HAVE ${result.toUpperCase()} IN YOUR INVENTORY`, false);
+                    }
+                }
+            } else {
+                // Failed combination
+                showResult("THESE ELEMENTS CANNOT BE COMBINED", false);
+            }
+            
+            // Clear the crafting slots
+            clearCraftingSlots();
+            
+            // Save game after each combination
+            saveGame();
+        }
+
+        // Activate rainbow mode
+        function activateRainbowMode() {
+            document.body.classList.add('rainbow-mode');
+            gameState.rainbowMode = true;
+            
+            // Save rainbow mode state
+            saveGame();
+        }
+
+        // Add a new element to the crafting area
+        function addNewElementToCraftingArea(elementName) {
+            const newElement = document.createElement('div');
+            newElement.className = 'element new-element';
+            newElement.textContent = elementName.toUpperCase();
+            newElement.dataset.element = elementName;
+            
+            newElement.addEventListener('click', () => {
+                addElementToCraftingSlot(elementName);
+            });
+            
+            craftingElements.appendChild(newElement);
+            
+            // Remove the animation class after the animation completes
+            setTimeout(() => {
+                newElement.classList.remove('new-element');
+            }, 400);
+        }
+
+        // Show the result of a combination attempt
+        function showResult(message, isSuccess) {
+            resultSection.textContent = message;
+            resultSection.className = 'result-section ' + (isSuccess ? 'success' : 'error');
+        }
+
+        // Clear the crafting slots
+        function clearCraftingSlots() {
+            gameState.craftingSlots = [null, null];
+            slots.forEach(slot => {
+                slot.textContent = '';
+                slot.classList.remove('filled');
+            });
+            updateCombineButton();
+        }
+
+        // Update the inventory display with floppy disks
+        function updateInventory() {
+            inventoryContainer.innerHTML = '';
+            gameState.inventory.forEach(element => {
+                const floppyDisk = document.createElement('div');
+                floppyDisk.className = 'floppy-disk';
+                
+                const label = document.createElement('div');
+                label.className = 'floppy-label';
+                label.textContent = element.toUpperCase();
+                
+                floppyDisk.appendChild(label);
+                
+                floppyDisk.addEventListener('click', () => {
+                    showFloppyDetail(element);
+                });
+                
+                inventoryContainer.appendChild(floppyDisk);
+            });
+            discoveredCount.textContent = gameState.inventory.size;
+        }
+
+        // Show floppy disk detail
+        function showFloppyDetail(elementName) {
+            detailTitle.textContent = elementName.toUpperCase();
+            
+            let recipe = "Base element";
+            for (const [combo, result] of Object.entries(gameState.combinations)) {
+                if (result === elementName) {
+                    const [elem1, elem2] = combo.split('+');
+                    recipe = `${elem1} + ${elem2}`;
+                    break;
+                }
+            }
+            
+            const description = gameState.elementDescriptions[elementName] || "An elemental substance with unknown properties.";
+            
+            detailContent.innerHTML = `
+                <p><strong>Description:</strong> ${description}</p>
+                <div class="detail-recipe">
+                    <strong>Recipe:</strong> ${recipe}
+                </div>
+                <p><strong>Date Discovered:</strong> ${new Date().toLocaleDateString()}</p>
+                <p><strong>Disk Label:</strong> INF-CRAFT-${elementName.toUpperCase().substring(0, 5)}</p>
+            `;
+            
+            floppyDetail.classList.add('show');
+            overlay.classList.add('show');
+        }
+
+        // Close floppy disk detail
+        function closeFloppyDetail() {
+            floppyDetail.classList.remove('show');
+            overlay.classList.remove('show');
+        }
+
+        // Save game to localStorage
+        function saveGame() {
+            const saveData = {
+                inventory: Array.from(gameState.inventory),
+                rainbowMode: gameState.rainbowMode
+            };
+            
+            localStorage.setItem('infiniteCraftSave', JSON.stringify(saveData));
+            showResult("GAME SAVED SUCCESSFULLY", true);
+            
+            // Create a downloadable save file
+            createDownloadableSave(saveData);
+        }
+
+        // Create a downloadable save file
+        function createDownloadableSave(saveData) {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(saveData));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", "infinite_craft_save.dem");
+            document.body.appendChild(downloadAnchorNode);
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+        }
+
+        // Load game from localStorage or file
+        function loadGame() {
+            // Try to load from localStorage first
+            const savedGame = localStorage.getItem('infiniteCraftSave');
+            
+            if (savedGame) {
+                try {
+                    const saveData = JSON.parse(savedGame);
+                    
+                    gameState.inventory = new Set(saveData.inventory);
+                    gameState.rainbowMode = saveData.rainbowMode || false;
+                    
+                    if (gameState.rainbowMode) {
+                        document.body.classList.add('rainbow-mode');
+                    }
+                    
+                    updateInventory();
+                    clearCraftingSlots();
+                    
+                    // Rebuild crafting area with all discovered elements
+                    rebuildCraftingArea();
+                    
+                    showResult("GAME LOADED SUCCESSFULLY", true);
+                } catch (e) {
+                    showResult("ERROR LOADING SAVE DATA", false);
+                    console.error("Error loading save data:", e);
+                }
+            } else {
+                showResult("NO SAVE DATA FOUND", false);
+            }
+        }
+
+        // Rebuild crafting area with all discovered elements
+        function rebuildCraftingArea() {
+            craftingElements.innerHTML = '';
+            
+            gameState.inventory.forEach(element => {
+                const elementDiv = document.createElement('div');
+                elementDiv.className = 'element';
+                elementDiv.textContent = element.toUpperCase();
+                elementDiv.dataset.element = element;
+                
+                elementDiv.addEventListener('click', () => {
+                    addElementToCraftingSlot(element);
+                });
+                
+                craftingElements.appendChild(elementDiv);
+            });
+        }
+
+        // Reset the game
+        function resetGame() {
+            if (confirm('ARE YOU SURE YOU WANT TO RESET THE GAME? ALL PROGRESS WILL BE LOST.')) {
+                gameState.inventory = new Set(['Earth', 'Fire', 'Water', 'Wind']);
+                gameState.rainbowMode = false;
+                document.body.classList.remove('rainbow-mode');
+                clearCraftingSlots();
+                updateInventory();
+                showResult('GAME RESET. SELECT TWO ELEMENTS TO COMBINE THEM', false);
+                
+                // Reset crafting area to initial elements only
+                rebuildCraftingArea();
+                
+                // Clear saved game
+                localStorage.removeItem('infiniteCraftSave');
+            }
+        }
+
+        // Initialize the game when the page loads
+        document.addEventListener('DOMContentLoaded', initGame);
+        
+        // Try to load game on page load
+        window.addEventListener('load', function() {
+            // This will run after the page is fully loaded
+            setTimeout(loadGame, 500);
+        });
+    </script>
+</body>
+</html>
